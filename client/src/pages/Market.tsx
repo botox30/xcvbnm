@@ -1,10 +1,83 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTickets } from "@/hooks/use-tickets";
+import { useAuth } from "@/hooks/use-auth";
 import { TicketCard } from "@/components/ui/TicketCard";
+import { ChatDialog } from "@/components/ui/ChatDialog";
+import { PriceOfferDialog } from "@/components/ui/PriceOfferDialog";
 import { Search } from "lucide-react";
+import type { Conversation, User } from "@shared/schema";
+
+interface ConversationWithDetails extends Conversation {
+  ticket: any;
+  buyer: User;
+  seller: User;
+}
 
 export default function Market() {
   const { data: tickets, isLoading } = useTickets("market");
+  const { user } = useAuth();
+  const [showChatDialog, setShowChatDialog] = useState(false);
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<ConversationWithDetails | null>(null);
+
+  const handleChat = async (ticketId: number) => {
+    if (!user) {
+      alert("Please log in to chat");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId }),
+      });
+      const conversation = await response.json();
+      
+      // Fetch full conversation details
+      const ticketResponse = await fetch(`/api/tickets/${ticketId}`);
+      const ticket = await ticketResponse.json();
+      
+      const conversationsResponse = await fetch("/api/conversations");
+      const allConversations = await conversationsResponse.json();
+      const fullConversation = allConversations.find((c: ConversationWithDetails) => c.id === conversation.id);
+      
+      setSelectedConversation(fullConversation);
+      setShowChatDialog(true);
+    } catch (error) {
+      console.error("Failed to start chat:", error);
+    }
+  };
+
+  const handleOffer = async (ticketId: number) => {
+    if (!user) {
+      alert("Please log in to make offers");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId }),
+      });
+      const conversation = await response.json();
+      
+      // Fetch full conversation details
+      const ticketResponse = await fetch(`/api/tickets/${ticketId}`);
+      const ticket = await ticketResponse.json();
+      
+      const conversationsResponse = await fetch("/api/conversations");
+      const allConversations = await conversationsResponse.json();
+      const fullConversation = allConversations.find((c: ConversationWithDetails) => c.id === conversation.id);
+      
+      setSelectedConversation(fullConversation);
+      setShowOfferDialog(true);
+    } catch (error) {
+      console.error("Failed to start offer:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -47,7 +120,11 @@ export default function Market() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <TicketCard ticket={ticket} />
+                <TicketCard 
+                  ticket={ticket}
+                  onChat={handleChat}
+                  onOffer={handleOffer}
+                />
               </motion.div>
             ))}
           </div>
@@ -58,6 +135,31 @@ export default function Market() {
           </div>
         )}
       </motion.div>
+
+      {/* Chat Dialog */}
+      {showChatDialog && selectedConversation && user && (
+        <ChatDialog
+          conversation={selectedConversation}
+          currentUserId={user.id}
+          onClose={() => {
+            setShowChatDialog(false);
+            setSelectedConversation(null);
+          }}
+        />
+      )}
+
+      {/* Offer Dialog */}
+      {showOfferDialog && selectedConversation && user && (
+        <PriceOfferDialog
+          conversation={selectedConversation}
+          currentUserId={user.id}
+          isBuyer={selectedConversation.buyerId === user.id}
+          onClose={() => {
+            setShowOfferDialog(false);
+            setSelectedConversation(null);
+          }}
+        />
+      )}
     </div>
   );
 }

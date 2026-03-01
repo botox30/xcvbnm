@@ -17,6 +17,7 @@ import Official from "@/pages/Official";
 import CreateTicket from "@/pages/CreateTicket";
 import Checkout from "@/pages/Checkout";
 import AdminPanel from "@/pages/AdminPanel";
+import Messages from "@/pages/Messages";
 
 function ProtectedRoute({ path, component: Component }: { path: string; component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
@@ -51,6 +52,7 @@ function Router() {
           <Route path="/official" component={Official} />
           <ProtectedRoute path="/sell" component={CreateTicket} />
           <ProtectedRoute path="/checkout/:id" component={Checkout} />
+          <ProtectedRoute path="/messages" component={Messages} />
           <ProtectedRoute path="/admin" component={AdminPanel} />
           <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />

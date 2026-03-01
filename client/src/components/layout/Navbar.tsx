@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Ticket, Search, User, Menu, LogOut } from "lucide-react";
+import { Ticket, Search, User, Menu, LogOut, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -76,6 +76,18 @@ export function Navbar() {
             
             {user ? (
               <div className="flex items-center gap-2">
+                <Link href="/messages">
+                  <button 
+                    className={`transition-colors p-2 rounded-full ${
+                      location === '/messages'
+                        ? 'text-blue-400 bg-blue-500/10'
+                        : 'text-white/60 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Messages"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                  </button>
+                </Link>
                 <div className="hidden sm:flex flex-col items-end mr-1">
                   <span className="text-[10px] text-white/40 leading-none">Logged in as</span>
                   <span className="text-xs font-medium text-white leading-tight">{user.username}</span>

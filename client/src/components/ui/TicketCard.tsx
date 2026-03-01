@@ -1,13 +1,15 @@
 import { format } from "date-fns";
-import { MapPin, Calendar, CheckCircle2 } from "lucide-react";
+import { MapPin, Calendar, CheckCircle2, MessageSquare, TrendingDown } from "lucide-react";
 import { type Ticket } from "@shared/schema";
 import { useLocation } from "wouter";
 
 interface TicketCardProps {
   ticket: Ticket;
+  onChat?: (ticketId: number) => void;
+  onOffer?: (ticketId: number) => void;
 }
 
-export function TicketCard({ ticket }: TicketCardProps) {
+export function TicketCard({ ticket, onChat, onOffer }: TicketCardProps) {
   const [, setLocation] = useLocation();
   const isAvailable = ticket.status === "available";
 
@@ -60,19 +62,54 @@ export function TicketCard({ ticket }: TicketCardProps) {
             </div>
           </div>
 
-          {/* Action Button */}
-          <button 
-            onClick={() => isAvailable && setLocation(`/checkout/${ticket.id}`)}
-            disabled={!isAvailable}
-            className={`w-full py-4 rounded-2xl font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
-              isAvailable 
-                ? "bg-white text-black hover:bg-white/90 active:scale-[0.98]" 
-                : "bg-white/10 text-white/40 cursor-not-allowed"
-            }`}
-          >
-            {isAvailable ? "Get Tickets" : "Sold Out"}
-            {!isAvailable && <CheckCircle2 className="w-4 h-4" />}
-          </button>
+          {/* Action Buttons */}
+          {ticket.type === "market" ? (
+            <div className="space-y-3">
+              <button 
+                onClick={() => isAvailable && setLocation(`/checkout/${ticket.id}`)}
+                disabled={!isAvailable}
+                className={`w-full py-3 rounded-2xl font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                  isAvailable 
+                    ? "bg-white text-black hover:bg-white/90 active:scale-[0.98]" 
+                    : "bg-white/10 text-white/40 cursor-not-allowed"
+                }`}
+              >
+                {isAvailable ? "Buy Now" : "Sold Out"}
+                {!isAvailable && <CheckCircle2 className="w-4 h-4" />}
+              </button>
+              {isAvailable && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onChat?.(ticket.id)}
+                    className="flex-1 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-medium text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Chat
+                  </button>
+                  <button
+                    onClick={() => onOffer?.(ticket.id)}
+                    className="flex-1 py-2 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-400 font-medium text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    <TrendingDown className="w-4 h-4" />
+                    Offer
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button 
+              onClick={() => isAvailable && setLocation(`/checkout/${ticket.id}`)}
+              disabled={!isAvailable}
+              className={`w-full py-4 rounded-2xl font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                isAvailable 
+                  ? "bg-white text-black hover:bg-white/90 active:scale-[0.98]" 
+                  : "bg-white/10 text-white/40 cursor-not-allowed"
+              }`}
+            >
+              {isAvailable ? "Get Tickets" : "Sold Out"}
+              {!isAvailable && <CheckCircle2 className="w-4 h-4" />}
+            </button>
+          )}
         </div>
       </div>
     </>

@@ -147,6 +147,85 @@ export async function registerRoutes(
     }
   });
 
+  // Chat & Offers Routes
+  app.get("/api/conversations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const conversations = await storage.getConversations(req.user!.id);
+    res.json(conversations);
+  });
+
+  app.post("/api/conversations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const { ticketId } = req.body;
+    const ticket = await storage.getTicket(ticketId);
+    if (!ticket) return res.status(404).send("Ticket not found");
+    
+    let conversation = await storage.getConversationByTicketAndBuyer(ticketId, req.user!.id);
+    if (!conversation) {
+      conversation = await storage.createConversation({
+        ticketId,
+        buyerId: req.user!.id,
+        sellerId: ticket.sellerId,
+      });
+    }
+    res.json(conversation);
+  });
+
+  app.get("/api/conversations/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const conversation = await storage.getConversation(Number(req.params.id));
+    if (!conversation) return res.status(404).send("Conversation not found");
+    if (conversation.buyerId !== req.user!.id && conversation.sellerId !== req.user!.id) {
+      return res.status(403).send("Forbidden");
+    }
+    const messages = await storage.getMessages(Number(req.params.id));
+    res.json(messages);
+  });
+
+  app.post("/api/conversations/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const conversation = await storage.getConversation(Number(req.params.id));
+    if (!conversation) return res.status(404).send("Conversation not found");
+    if (conversation.buyerId !== req.user!.id && conversation.sellerId !== req.user!.id) {
+      return res.status(403).send("Forbidden");
+    }
+    const message = await storage.createMessage({
+      conversationId: Number(req.params.id),
+      senderId: req.user!.id,
+      content: req.body.content,
+    });
+    res.json(message);
+  });
+
+  app.get("/api/conversations/:id/offers", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const conversation = await storage.getConversation(Number(req.params.id));
+    if (!conversation) return res.status(404).send("Conversation not found");
+    const offers = await storage.getOffers(Number(req.params.id));
+    res.json(offers);
+  });
+
+  app.post("/api/conversations/:id/offers", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const conversation = await storage.getConversation(Number(req.params.id));
+    if (!conversation) return res.status(404).send("Conversation not found");
+    if (conversation.buyerId !== req.user!.id) return res.status(403).send("Only buyers can make offers");
+    
+    const offer = await storage.createOffer({
+      conversationId: Number(req.params.id),
+      buyerId: req.user!.id,
+      amount: req.body.amount,
+    });
+    res.json(offer);
+  });
+
+  app.patch("/api/offers/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    const { status } = req.body;
+    const updated = await storage.updateOfferStatus(Number(req.params.id), status);
+    res.json(updated);
+  });
+
   // seed data
   seedDatabase().catch(console.error);
 
