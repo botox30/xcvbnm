@@ -4,6 +4,7 @@ import { Send, X, MessageCircle } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import type { Message, Conversation, User } from "@shared/schema";
 
 interface ChatDialogProps {
@@ -13,6 +14,7 @@ interface ChatDialogProps {
 }
 
 export function ChatDialog({ conversation, currentUserId, onClose }: ChatDialogProps) {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +58,11 @@ export function ChatDialog({ conversation, currentUserId, onClose }: ChatDialogP
       setMessages([...messages, message]);
       setNewMessage("");
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send message",
+      });
       console.error("Failed to send message:", error);
     }
   };

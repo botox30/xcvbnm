@@ -44,6 +44,7 @@ export default function CreateTicket() {
       });
 
       toast({
+        variant: "success",
         title: "Template Imported!",
         description: "Event details have been filled from Ticketmaster.",
       });
@@ -75,6 +76,7 @@ export default function CreateTicket() {
       });
       
       toast({
+        variant: "success",
         title: "Ticket Listed!",
         description: "Your ticket is now live on the market.",
       });

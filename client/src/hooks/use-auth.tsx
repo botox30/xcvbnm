@@ -53,6 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
+      toast({
+        variant: "success",
+        title: "Welcome back!",
+        description: `Successfully logged in as ${user.username}`,
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -78,6 +83,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
+      toast({
+        variant: "success",
+        title: "Account created!",
+        description: `Welcome to restage, ${user.username}`,
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -95,6 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      toast({
+        variant: "success",
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
     },
     onError: (error: Error) => {
       toast({

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, TrendingDown } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
+import { useToast } from "@/hooks/use-toast";
 import type { Offer, Conversation } from "@shared/schema";
 
 interface PriceOfferDialogProps {
@@ -18,6 +19,7 @@ export function PriceOfferDialog({
   isBuyer,
   onClose,
 }: PriceOfferDialogProps) {
+  const { toast } = useToast();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [newOfferAmount, setNewOfferAmount] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +55,17 @@ export function PriceOfferDialog({
       const offer = await response.json();
       setOffers([...offers, offer]);
       setNewOfferAmount("");
+      toast({
+        variant: "success",
+        title: "Offer Sent",
+        description: "Your price offer has been sent to the seller.",
+      });
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send offer",
+      });
       console.error("Failed to submit offer:", error);
     } finally {
       setIsSubmitting(false);
@@ -69,7 +81,17 @@ export function PriceOfferDialog({
       });
       const updated = await response.json();
       setOffers(offers.map((o) => (o.id === offerId ? updated : o)));
+      toast({
+        variant: "success",
+        title: `Offer ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        description: `You have ${status} the price offer.`,
+      });
     } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update offer",
+      });
       console.error("Failed to update offer:", error);
     }
   };

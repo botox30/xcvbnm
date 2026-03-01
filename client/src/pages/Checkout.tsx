@@ -63,6 +63,7 @@ export default function Checkout() {
       setPurchasedTicket(result);
       setIsSuccess(true);
       toast({
+        variant: "success",
         title: "Order Confirmed",
         description: "Your tickets are now available in your account.",
       });

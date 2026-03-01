@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Ticket, Search, User, Menu, LogOut, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,6 +8,7 @@ export function Navbar() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const { user, logoutMutation } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +17,30 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Simulate checking for unread messages/offers
+  useEffect(() => {
+    if (!user) return;
+    
+    const checkNotifications = async () => {
+      try {
+        const response = await fetch("/api/conversations");
+        const conversations = await response.json();
+        // For demo purposes, let's say any conversation created in the last 5 minutes is "new"
+        // or just show a badge if there are any conversations.
+        // In a real app, we'd have an 'unread' flag on messages/offers.
+        if (conversations.length > 0) {
+          setUnreadCount(conversations.length);
+        }
+      } catch (error) {
+        console.error("Failed to check notifications:", error);
+      }
+    };
+
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, [user]);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -78,7 +103,7 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Link href="/messages">
                   <button 
-                    className={`transition-colors p-2 rounded-full ${
+                    className={`relative transition-colors p-2 rounded-full ${
                       location === '/messages'
                         ? 'text-blue-400 bg-blue-500/10'
                         : 'text-white/60 hover:text-white hover:bg-white/10'
@@ -86,6 +111,18 @@ export function Navbar() {
                     title="Messages"
                   >
                     <MessageSquare className="w-5 h-5" />
+                    <AnimatePresence>
+                      {unreadCount > 0 && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          exit={{ scale: 0 }}
+                          className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-black"
+                        >
+                          {unreadCount}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </button>
                 </Link>
                 <div className="hidden sm:flex flex-col items-end mr-1">
